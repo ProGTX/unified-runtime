@@ -772,6 +772,107 @@ UR_APIEXPORT ur_result_t UR_APICALL urDeviceGetInfo(ur_device_handle_t hDevice,
     return ReturnValue(int32_t{1});
   }
 
+  case UR_DEVICE_INFO_BINDLESS_IMAGES_SUPPORT_EXP: {
+    // On HIP bindless images are supported.
+    return ReturnValue(true);
+  }
+  case UR_DEVICE_INFO_BINDLESS_IMAGES_SHARED_USM_SUPPORT_EXP: {
+    // On HIP bindless images can be backed by shared (managed) USM.
+    return ReturnValue(true);
+  }
+  case UR_DEVICE_INFO_BINDLESS_IMAGES_1D_USM_SUPPORT_EXP: {
+    // On HIP 1D bindless image USM is supported, but sampling is not.
+    // More specifically, linear filtering is not supported.
+    return ReturnValue(true);
+  }
+  case UR_DEVICE_INFO_BINDLESS_IMAGES_2D_USM_SUPPORT_EXP: {
+    // On HIP 2D bindless image USM is supported.
+    return ReturnValue(true);
+  }
+  case UR_DEVICE_INFO_IMAGE_PITCH_ALIGN_EXP: {
+    int32_t tex_pitch_align = 0;
+    UR_CHECK_ERROR(hipDeviceGetAttribute(
+        &tex_pitch_align, hipDeviceAttributeTexturePitchAlignment,
+        hDevice->get()));
+    return ReturnValue(tex_pitch_align);
+  }
+  case UR_DEVICE_INFO_MAX_IMAGE_LINEAR_WIDTH_EXP: {
+    int32_t tex_max_linear_width = 0;
+    UR_CHECK_ERROR(hipDeviceGetAttribute(
+        &tex_max_linear_width,
+        hipDeviceAttributeMaxTexture2DLinear, hDevice->get()));
+    return ReturnValue(tex_max_linear_width);
+  }
+  case UR_DEVICE_INFO_MIPMAP_SUPPORT_EXP: {
+    // HIP supports mipmaps.
+    return ReturnValue(true);
+  }
+  case UR_DEVICE_INFO_MIPMAP_ANISOTROPY_SUPPORT_EXP: {
+    // HIP supports anisotropic filtering.
+    return ReturnValue(true);
+  }
+  case UR_DEVICE_INFO_MIPMAP_MAX_ANISOTROPY_EXP: {
+    // HIP has no query for this, but documentation states max value is 16.
+    return ReturnValue(16.f);
+  }
+  case UR_DEVICE_INFO_MIPMAP_LEVEL_REFERENCE_SUPPORT_EXP: {
+    // HIP supports creation of images from individual mipmap levels.
+    return ReturnValue(true);
+  }
+
+  case UR_DEVICE_INFO_EXTERNAL_MEMORY_IMPORT_SUPPORT_EXP: {
+    // HIP supports importing external memory.
+    return ReturnValue(true);
+  }
+  case UR_DEVICE_INFO_EXTERNAL_SEMAPHORE_IMPORT_SUPPORT_EXP: {
+    // HIP supports importing external semaphores.
+    return ReturnValue(true);
+  }
+  case UR_DEVICE_INFO_CUBEMAP_SUPPORT_EXP: {
+    // HIP supports cubemaps.
+    return ReturnValue(true);
+  }
+  case UR_DEVICE_INFO_CUBEMAP_SEAMLESS_FILTERING_SUPPORT_EXP: {
+    // HIP supports cubemap seamless filtering.
+    return ReturnValue(true);
+  }
+  case UR_DEVICE_INFO_BINDLESS_SAMPLED_IMAGE_FETCH_1D_USM_EXP: {
+    // HIP does support fetching 1D USM sampled image data.
+    return ReturnValue(true);
+  }
+  case UR_DEVICE_INFO_BINDLESS_SAMPLED_IMAGE_FETCH_1D_EXP: {
+    // HIP does not support fetching 1D non-USM sampled image data.
+    return ReturnValue(false);
+  }
+  case UR_DEVICE_INFO_BINDLESS_SAMPLED_IMAGE_FETCH_2D_USM_EXP: {
+    // HIP does support fetching 2D USM sampled image data.
+    return ReturnValue(true);
+  }
+  case UR_DEVICE_INFO_BINDLESS_SAMPLED_IMAGE_FETCH_2D_EXP: {
+    // HIP does support fetching 2D non-USM sampled image data.
+    return ReturnValue(true);
+  }
+  case UR_DEVICE_INFO_BINDLESS_SAMPLED_IMAGE_FETCH_3D_EXP: {
+    // HIP does support fetching 3D non-USM sampled image data.
+    return ReturnValue(true);
+  }
+  case UR_DEVICE_INFO_IMAGE_ARRAY_SUPPORT_EXP: {
+    // HIP does support image arrays
+    return ReturnValue(true);
+  }
+  case UR_DEVICE_INFO_BINDLESS_UNIQUE_ADDRESSING_PER_DIM_EXP: {
+    // HIP does support unique addressing per dimension
+    return ReturnValue(true);
+  }
+  case UR_DEVICE_INFO_BINDLESS_SAMPLE_1D_USM_EXP: {
+    // HIP does not support sampling 1D USM sampled image data.
+    return ReturnValue(false);
+  }
+  case UR_DEVICE_INFO_BINDLESS_SAMPLE_2D_USM_EXP: {
+    // HIP does support sampling 1D USM sampled image data.
+    return ReturnValue(true);
+  }
+
   case UR_DEVICE_INFO_KERNEL_SET_SPECIALIZATION_CONSTANTS: {
     return ReturnValue(ur_bool_t{false});
   }
