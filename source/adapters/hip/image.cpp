@@ -907,7 +907,9 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesImageGetInfoExp(
   }
 
   HIP_ARRAY3D_DESCRIPTOR ArrayDesc;
+#if TODO // HIP_VERSION < 50600000
   UR_CHECK_ERROR(hipArray3DGetDescriptor(&ArrayDesc, hhipArray_t));
+#endif
   switch (propName) {
   case UR_IMAGE_INFO_WIDTH:
     if (pPropValue) {
@@ -1043,7 +1045,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesImportExternalMemoryExp(
           break;
         case UR_EXP_EXTERNAL_MEM_TYPE_WIN32_NT_DX12_RESOURCE:
           extMemDesc.type = hipExternalMemoryHandleTypeD3D12Resource;
-          extMemDesc.flags = hipExternalMemoryDedicated;
+          extMemDesc.flags = 1 /* TODO: hipExternalMemoryDedicated*/;
           break;
         case UR_EXP_EXTERNAL_MEM_TYPE_OPAQUE_FD:
         default:
