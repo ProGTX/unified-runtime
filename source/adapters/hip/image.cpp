@@ -36,6 +36,7 @@ ur_result_t urCalculateNumChannels(ur_image_channel_order_t order,
     *NumChannels = 2;
     return UR_RESULT_SUCCESS;
   case ur_image_channel_order_t::UR_IMAGE_CHANNEL_ORDER_RGB:
+    UR_CHECK_ERROR(UR_RESULT_ERROR_UNSUPPORTED_IMAGE_FORMAT);
     return UR_RESULT_ERROR_UNSUPPORTED_IMAGE_FORMAT;
   case ur_image_channel_order_t::UR_IMAGE_CHANNEL_ORDER_RGBA:
   case ur_image_channel_order_t::UR_IMAGE_CHANNEL_ORDER_ARGB:
@@ -50,6 +51,7 @@ ur_result_t urCalculateNumChannels(ur_image_channel_order_t order,
   case ur_image_channel_order_t::UR_IMAGE_CHANNEL_ORDER_INTENSITY:
   case ur_image_channel_order_t::UR_IMAGE_CHANNEL_ORDER_LUMINANCE:
   default:
+    UR_CHECK_ERROR(UR_RESULT_ERROR_UNSUPPORTED_IMAGE_FORMAT);
     return UR_RESULT_ERROR_UNSUPPORTED_IMAGE_FORMAT;
   }
 }
@@ -129,6 +131,7 @@ hipToUrImageChannelFormat(hipArray_Format hip_format,
 #define HIP_TO_UR_IMAGE_CHANNEL_TYPE(FROM, TO)                                 \
   case FROM: {                                                                 \
     *return_image_channel_type = TO;                                           \
+    UR_CHECK_ERROR(UR_RESULT_SUCCESS);                                         \
     return UR_RESULT_SUCCESS;                                                  \
   }
     HIP_TO_UR_IMAGE_CHANNEL_TYPE(HIP_AD_FORMAT_UNSIGNED_INT8,
@@ -148,6 +151,7 @@ hipToUrImageChannelFormat(hipArray_Format hip_format,
     HIP_TO_UR_IMAGE_CHANNEL_TYPE(HIP_AD_FORMAT_FLOAT,
                                  UR_IMAGE_CHANNEL_TYPE_FLOAT);
   default:
+    UR_CHECK_ERROR(UR_RESULT_ERROR_UNSUPPORTED_IMAGE_FORMAT);
     return UR_RESULT_ERROR_UNSUPPORTED_IMAGE_FORMAT;
   }
 }
@@ -236,6 +240,7 @@ ur_result_t urTextureCreate(ur_sampler_handle_t hSampler,
       setErrorMessage("The UR_EXP_SAMPLER_CUBEMAP_FILTER_MODE_SEAMLESS "
                       "feature is not available with the HIP backend.",
                       UR_RESULT_ERROR_ADAPTER_SPECIFIC);
+      UR_CHECK_ERROR(UR_RESULT_ERROR_ADAPTER_SPECIFIC);
       return UR_RESULT_ERROR_ADAPTER_SPECIFIC;
     }
 
@@ -246,6 +251,7 @@ ur_result_t urTextureCreate(ur_sampler_handle_t hSampler,
   } catch (ur_result_t Err) {
     return Err;
   } catch (...) {
+    UR_CHECK_ERROR(UR_RESULT_ERROR_UNKNOWN);
     return UR_RESULT_ERROR_UNKNOWN;
   }
   return UR_RESULT_SUCCESS;
@@ -283,6 +289,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urUSMPitchedAllocExp(
   } catch (ur_result_t error) {
     Result = error;
   } catch (...) {
+    UR_CHECK_ERROR(UR_RESULT_ERROR_UNKNOWN);
     return UR_RESULT_ERROR_UNKNOWN;
   }
 
@@ -365,6 +372,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesImageAllocateExp(
     array_desc.Flags |= hipArrayCubemap;
     break;
   default:
+    UR_CHECK_ERROR(UR_RESULT_ERROR_UNSUPPORTED_FEATURE);
     return UR_RESULT_ERROR_UNSUPPORTED_FEATURE;
   }
 
@@ -386,6 +394,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesImageAllocateExp(
       if (ImageArray != hipArray_t{}) {
         UR_CHECK_ERROR(hipArrayDestroy(ImageArray));
       }
+      UR_CHECK_ERROR(UR_RESULT_ERROR_UNKNOWN);
       return UR_RESULT_ERROR_UNKNOWN;
     }
   } else // Allocate a cuMipmappedArray
@@ -406,6 +415,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesImageAllocateExp(
       if (mip_array) {
         UR_CHECK_ERROR(hipMipmappedArrayDestroy(mip_array));
       }
+      UR_CHECK_ERROR(UR_RESULT_ERROR_UNKNOWN);
       return UR_RESULT_ERROR_UNKNOWN;
     }
   }
@@ -427,6 +437,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesImageFreeExp(
   } catch (ur_result_t Err) {
     return Err;
   } catch (...) {
+    UR_CHECK_ERROR(UR_RESULT_ERROR_UNKNOWN);
     return UR_RESULT_ERROR_UNKNOWN;
   }
   return UR_RESULT_SUCCESS;
@@ -472,6 +483,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesUnsampledImageCreateExp(
   } catch (ur_result_t Err) {
     return Err;
   } catch (...) {
+    UR_CHECK_ERROR(UR_RESULT_ERROR_UNKNOWN);
     return UR_RESULT_ERROR_UNKNOWN;
   }
 
@@ -543,10 +555,12 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesSampledImageCreateExp(
         image_res_desc.res.pitch2D.pitchInBytes = pImageDesc->rowPitch;
       } else if (pImageDesc->type == UR_MEM_TYPE_IMAGE3D) {
         // Cannot create 3D image from USM.
+        UR_CHECK_ERROR(UR_RESULT_ERROR_INVALID_VALUE);
         return UR_RESULT_ERROR_INVALID_VALUE;
       }
     } else {
       // Unknown image memory type.
+      UR_CHECK_ERROR(UR_RESULT_ERROR_INVALID_VALUE);
       return UR_RESULT_ERROR_INVALID_VALUE;
     }
 
@@ -556,6 +570,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesSampledImageCreateExp(
   } catch (ur_result_t Err) {
     return Err;
   } catch (...) {
+    UR_CHECK_ERROR(UR_RESULT_ERROR_UNKNOWN);
     return UR_RESULT_ERROR_UNKNOWN;
   }
 
@@ -628,6 +643,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesImageCopyExp(
               CopyExtentBytes, Stream));
         } else {
           // This should be unreachable.
+          UR_CHECK_ERROR(UR_RESULT_ERROR_INVALID_VALUE);
           return UR_RESULT_ERROR_INVALID_VALUE;
         }
       } else if (pDstImageDesc->type == UR_MEM_TYPE_IMAGE2D) {
@@ -725,6 +741,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesImageCopyExp(
                                             CopyExtentBytes, Stream));
         } else {
           // This should be unreachable.
+          UR_CHECK_ERROR(UR_RESULT_ERROR_INVALID_VALUE);
           return UR_RESULT_ERROR_INVALID_VALUE;
         }
       } else if (pSrcImageDesc->type == UR_MEM_TYPE_IMAGE2D) {
@@ -800,6 +817,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesImageCopyExp(
       if (pSrcImageDesc->type != pDstImageDesc->type) {
         logger::error(
             "Unsupported copy operation between different type of images");
+        UR_CHECK_ERROR(UR_RESULT_ERROR_UNSUPPORTED_FEATURE);
         return UR_RESULT_ERROR_UNSUPPORTED_FEATURE;
       }
 
@@ -887,6 +905,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesImageCopyExp(
   } catch (ur_result_t Err) {
     return Err;
   } catch (...) {
+    UR_CHECK_ERROR(UR_RESULT_ERROR_UNKNOWN);
     return UR_RESULT_ERROR_UNKNOWN;
   }
 
@@ -963,6 +982,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesImageGetInfoExp(
     }
     return UR_RESULT_SUCCESS;
   default:
+    UR_CHECK_ERROR(UR_RESULT_ERROR_INVALID_VALUE);
     return UR_RESULT_ERROR_INVALID_VALUE;
   }
 }
@@ -985,6 +1005,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesMipmapGetLevelExp(
   } catch (ur_result_t Err) {
     return Err;
   } catch (...) {
+    UR_CHECK_ERROR(UR_RESULT_ERROR_UNKNOWN);
     return UR_RESULT_ERROR_UNKNOWN;
   }
 
@@ -1005,6 +1026,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesMipmapFreeExp(
   } catch (ur_result_t Err) {
     return Err;
   } catch (...) {
+    UR_CHECK_ERROR(UR_RESULT_ERROR_UNKNOWN);
     return UR_RESULT_ERROR_UNKNOWN;
   }
   return UR_RESULT_SUCCESS;
@@ -1049,6 +1071,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesImportExternalMemoryExp(
           break;
         case UR_EXP_EXTERNAL_MEM_TYPE_OPAQUE_FD:
         default:
+          UR_CHECK_ERROR(UR_RESULT_ERROR_INVALID_VALUE);
           return UR_RESULT_ERROR_INVALID_VALUE;
         }
         extMemDesc.handle.win32.handle = Win32Handle->handle;
@@ -1063,6 +1086,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesImportExternalMemoryExp(
   } catch (ur_result_t Err) {
     return Err;
   } catch (...) {
+    UR_CHECK_ERROR(UR_RESULT_ERROR_UNKNOWN);
     return UR_RESULT_ERROR_UNKNOWN;
   }
 
@@ -1122,6 +1146,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesMapExternalArrayExp(
   } catch (ur_result_t Err) {
     return Err;
   } catch (...) {
+    UR_CHECK_ERROR(UR_RESULT_ERROR_UNKNOWN);
     return UR_RESULT_ERROR_UNKNOWN;
   }
   return UR_RESULT_SUCCESS;
@@ -1152,6 +1177,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesMapExternalLinearMemoryExp(
   } catch (ur_result_t Err) {
     return Err;
   } catch (...) {
+    UR_CHECK_ERROR(UR_RESULT_ERROR_UNKNOWN);
     return UR_RESULT_ERROR_UNKNOWN;
   }
   return UR_RESULT_SUCCESS;
@@ -1171,6 +1197,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesReleaseExternalMemoryExp(
   } catch (ur_result_t Err) {
     return Err;
   } catch (...) {
+    UR_CHECK_ERROR(UR_RESULT_ERROR_UNKNOWN);
     return UR_RESULT_ERROR_UNKNOWN;
   }
   return UR_RESULT_SUCCESS;
@@ -1212,6 +1239,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesImportExternalSemaphoreExp(
           break;
         case UR_EXP_EXTERNAL_SEMAPHORE_TYPE_OPAQUE_FD:
         default:
+          UR_CHECK_ERROR(UR_RESULT_ERROR_INVALID_VALUE);
           return UR_RESULT_ERROR_INVALID_VALUE;
         }
         extSemDesc.handle.win32.handle = Win32Handle->handle;
@@ -1226,6 +1254,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesImportExternalSemaphoreExp(
   } catch (ur_result_t Err) {
     return Err;
   } catch (...) {
+    UR_CHECK_ERROR(UR_RESULT_ERROR_UNKNOWN);
     return UR_RESULT_ERROR_UNKNOWN;
   }
   return UR_RESULT_SUCCESS;
@@ -1246,6 +1275,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesReleaseExternalSemaphoreExp(
   } catch (ur_result_t Err) {
     return Err;
   } catch (...) {
+    UR_CHECK_ERROR(UR_RESULT_ERROR_UNKNOWN);
     return UR_RESULT_ERROR_UNKNOWN;
   }
   return UR_RESULT_SUCCESS;
@@ -1281,6 +1311,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesWaitExternalSemaphoreExp(
   } catch (ur_result_t Err) {
     return Err;
   } catch (...) {
+    UR_CHECK_ERROR(UR_RESULT_ERROR_UNKNOWN);
     return UR_RESULT_ERROR_UNKNOWN;
   }
   return UR_RESULT_SUCCESS;
@@ -1316,6 +1347,7 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesSignalExternalSemaphoreExp(
   } catch (ur_result_t Err) {
     return Err;
   } catch (...) {
+    UR_CHECK_ERROR(UR_RESULT_ERROR_UNKNOWN);
     return UR_RESULT_ERROR_UNKNOWN;
   }
   return UR_RESULT_SUCCESS;
