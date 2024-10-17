@@ -627,12 +627,10 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesImageCopyExp(
                                     (pCopyRegion->srcOffset.x * PixelSizeBytes);
 
         if (isHipArray) {
-#if TODO
-          UR_CHECK_ERROR(hipMemcpyHtoAAsync(
+          // TODO: Replace with hipMemcpyHtoAAsync when available (HIP 6.2.0)
+          UR_CHECK_ERROR(hipMemcpyHtoA(
               (hipArray_t)pDst, pCopyRegion->dstOffset.x * PixelSizeBytes,
-              static_cast<const void *>(SrcWithOffset), CopyExtentBytes,
-              Stream));
-#endif
+              static_cast<const void *>(SrcWithOffset), CopyExtentBytes));
         } else if (memType == hipMemoryTypeDevice) {
           void *DstWithOffset =
               static_cast<void *>(static_cast<char *>(pDst) +
@@ -726,12 +724,10 @@ UR_APIEXPORT ur_result_t UR_APICALL urBindlessImagesImageCopyExp(
                                 (PixelSizeBytes * pCopyRegion->dstOffset.x));
 
         if (isHipArray) {
-#if TODO
-          UR_CHECK_ERROR(
-              hipMemcpyAtoHAsync(DstWithOffset, (hipArray_t)pSrc,
-                                 PixelSizeBytes * pCopyRegion->srcOffset.x,
-                                 CopyExtentBytes, Stream));
-#endif
+          // TODO: Replace with hipMemcpyAtoHAsync when available (HIP 6.2.0)
+          UR_CHECK_ERROR(hipMemcpyAtoH(
+              DstWithOffset, (hipArray_t)pSrc,
+              PixelSizeBytes * pCopyRegion->srcOffset.x, CopyExtentBytes));
         } else if (memType == hipMemoryTypeDevice) {
           const char *SrcWithOffset =
               static_cast<const char *>(pSrc) +
